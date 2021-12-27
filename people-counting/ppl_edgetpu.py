@@ -2,16 +2,16 @@
 from edgetpu.detection.engine import DetectionEngine
 from edgetpu.utils import dataset_utils
 from PIL import Image
-from PIL import ImageDraw
 from mylib.centroidtracker import CentroidTracker
 from mylib.trackableobject import TrackableObject
 from imutils.video import FPS
 import numpy as np
 import argparse
-import imutils
 import time
 import dlib
 import cv2
+from csv_logger import CsvLogger
+from threading import Thread
 
 # construct the argument parse and parse the arguments
 parser = argparse.ArgumentParser()
@@ -22,7 +22,34 @@ parser.add_argument('--output', help='Output image path.')
 parser.add_argument('--keep_aspect_ratio', action='store_true', help=('keep the image aspect ratio'))
 args = vars(parser.parse_args())
 
+# initialize the total number of frames processed thus far, along
+# with the total number of objects that have moved either up or down
+totalLeft = 0
+totalRight = 0
+totalFrames = 0
+
+vid_finished = False
+
+def log_count():
+    global totalRight, totalLeft, totalFrames
+    filename = 'log.csv'
+    header = ['date', 'seek time' 'R', 'L']
+    datefmt = '%Y/%m/%d'
+
+    # Creat logger with csv rotating handler
+    # configure nb of frames and vid duration accordingly
+    csvlogger = CsvLogger(filename=filename, header=header, datefmt=datefmt)
+    while True:
+        csvlogger.info([totalFrames/276 * 9.209200 + time.time(), totalLeft, totalRight])
+        totalRight = 0
+        totalLeft = 0
+        if vid_finished:
+            break
+        
+        time.sleep(5)
+
 def main():
+
     # Initialize engine.
     engine = DetectionEngine(args["model"])
     labels = dataset_utils.read_label_file(args["label"]) if args["label"] else None
@@ -44,11 +71,9 @@ def main():
     trackers = []
     trackableObjects = {}
     
-    # initialize the total number of frames processed thus far, along
-    # with the total number of objects that have moved either up or down
-    totalFrames = 0
-    totalRight = 0
-    totalLeft = 0
+
+    global vid_finished, totalRight, totalLeft, totalFrames
+    
 
     # start the frames per second throughput estimator
     fps = FPS().start()
@@ -64,6 +89,7 @@ def main():
         # if we are viewing a video and we did not grab a frame then we
         # have reached the end of the video
         if args["input"] is not None and frame is None:
+            vid_finished = True
             break
 
         # resize the frame to have a maximum width of 500 pixels (the
@@ -177,7 +203,7 @@ def main():
                     # line, count the object
                     if direction < 0:
                         totalLeft += 1
-                        #log.write(time.strftime("%c") + '\t' + "Left" + '\t' + '\n')
+                        #csvlogger.info(['R', '1'])
                         to.counted = True
 
                     # if the direction is positive (indicating the object
@@ -185,7 +211,7 @@ def main():
                     # center line, count the object
                     elif direction > 0:
                         totalRight += 1
-                        #log.write(time.strftime("%c") + '\t' + "Right" + '\t' + '\n')
+                        #csvlogger.info(['L', '1'])
                         to.counted = True
                 
                 to.centroids.append(centroid)
@@ -245,4 +271,16 @@ def main():
     # close any open windows
     cv2.destroyAllWindows()
 
-main()
+# creating thread
+t1 = Thread(target=main)
+t2 = Thread(target=log_count)
+
+# starting thread 1
+t1.start()
+# starting thread 2
+t2.start()
+
+# wait until thread 1 is completely executed
+t1.join()
+# wait until thread 2 is completely executed
+t2.join()
