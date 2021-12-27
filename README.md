@@ -1,0 +1,3 @@
+# Netra
+
+This project is aimed to add a little bit of intelligence to provably dumb cameras on Hikvision NVRs. We didn't really know why we bothered, when the price difference is so minuscule, but probably someone needs to deploy, like, 500 sets of CCTV on 500 different locations and the difference matters? Who knows...
