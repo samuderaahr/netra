@@ -1,4 +1,4 @@
-# import the necessary packages
+# import ppl counting packages
 from edgetpu.detection.engine import DetectionEngine
 from edgetpu.utils import dataset_utils
 from PIL import Image
@@ -7,11 +7,14 @@ from mylib.trackableobject import TrackableObject
 from imutils.video import FPS
 import numpy as np
 import argparse
-import time
 import dlib
 import cv2
+
+# import logging packages
+import time
 from csv_logger import CsvLogger
 from threading import Thread
+import subprocess
 
 # construct the argument parse and parse the arguments
 parser = argparse.ArgumentParser()
@@ -33,14 +36,19 @@ vid_finished = False
 def log_count():
     global totalRight, totalLeft, totalFrames
     filename = 'log.csv'
-    header = ['date', 'seek time' 'R', 'L']
+    header = ['date', 'seek time', 'R', 'L']
     datefmt = '%Y/%m/%d'
+
+    # Obtain number of frames and video duration
+    ans = subprocess.check_output(['/home/flash/Desktop/test-stac/test.sh', args["input"]]).decode('ascii').split('\n')
+    print("nb frame is: {}".format(ans[0]))
+    print("vid duration is: {}".format(ans[1]))
 
     # Creat logger with csv rotating handler
     # configure nb of frames and vid duration accordingly
     csvlogger = CsvLogger(filename=filename, header=header, datefmt=datefmt)
     while True:
-        csvlogger.info([totalFrames/276 * 9.209200 + time.time(), totalLeft, totalRight])
+        csvlogger.info([totalFrames / int(ans[0]) * float(ans[1]) + time.time(), totalLeft, totalRight])
         totalRight = 0
         totalLeft = 0
         if vid_finished:
@@ -98,13 +106,6 @@ def main():
         # frame = imutils.resize(frame, width=500)
         rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
-
-        # if we are supposed to be writing a video to disk, initialize
-        # the writer
-        if args["output"] is not None and writer is None:
-            fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-            writer = cv2.VideoWriter(args["output"], fourcc, 30,
-                (W, H), True)
 
         # initialize the current status along with our list of bounding
         # box rectangles returned by either (1) our object detector or
@@ -226,24 +227,6 @@ def main():
                 cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
             cv2.circle(frame, (centroid[0], centroid[1]), 4, (0, 255, 0), -1)
 
-        # construct a tuple of information we will be displaying on the
-        # frame
-        info = [
-            ("left", totalLeft),
-            ("right", totalRight),
-            ("Status", status),
-        ]
-
-        # loop over the info tuples and draw them on our frame
-        for (i, (k, v)) in enumerate(info):
-            text = "{}: {}".format(k, v)
-            cv2.putText(frame, text, (10, H - ((i * 20) + 20)),
-                cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
-
-        # check to see if we should write the frame to disk
-        if writer is not None:
-            writer.write(frame)
-
         # show the output frame
         cv2.imshow("Frame", frame)
         key = cv2.waitKey(1) & 0xFF
@@ -262,10 +245,6 @@ def main():
     print("[INFO] elapsed time: {:.2f}".format(fps.elapsed()))
     print("[INFO] approx. FPS: {:.2f}".format(fps.fps()))
 
-    # check to see if we need to release the video writer pointer
-    if writer is not None:
-        writer.release()
-    
     vs.release()
 
     # close any open windows
