@@ -40,7 +40,7 @@ def log_count():
     datefmt = '%Y/%m/%d'
 
     # Obtain number of frames and video duration
-    ans = subprocess.check_output(['/home/flash/Desktop/test-stac/test.sh', args["input"]]).decode('ascii').split('\n')
+    ans = subprocess.check_output(['/home/flash/codes/people-counting/video_param.sh', args["input"]]).decode('ascii').split('\n')
     print("nb frame is: {}".format(ans[0]))
     print("vid duration is: {}".format(ans[1]))
 
