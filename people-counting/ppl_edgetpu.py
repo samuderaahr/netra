@@ -48,9 +48,10 @@ def log_count():
     # configure nb of frames and vid duration accordingly
     csvlogger = CsvLogger(filename=filename, header=header, datefmt=datefmt)
     while True:
-        csvlogger.info([totalFrames / int(ans[0]) * float(ans[1]) + time.time(), totalLeft, totalRight])
+        csvlogger.info([totalFrames / int(ans[0]) * float(ans[1]) + time.time(), float(totalLeft), float(totalRight)])
         totalRight = 0
         totalLeft = 0
+        subprocess.run(["/home/flash/codes/people-counting/ppl_telemetry.sh"])
         if vid_finished:
             break
         

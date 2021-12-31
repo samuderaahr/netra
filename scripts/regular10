@@ -1,0 +1,6 @@
+VIDEODIR=$(/media/flash/nfs/datadir0)
+
+# assuming an NVR of max 4 cameras
+LASTVIDS=$(ls -ltr | grep mp4 | tail -n 4 | awk {'print($9)'})
+
+echo $LASTVIDS > temp.
