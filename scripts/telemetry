@@ -43,13 +43,13 @@ else
 	#TODO: log to critical error
 fi
 
-#if [ -e /dev/sdb ];
-#then
-#	HDDTEMP2=$(sudo smartctl -d sat -a /dev/sdb | grep Celsius | awk {'print $10'})
-#	echo "HDD2: $HDDTEMP2.0"
-#else
-#	echo "HDD2 does not exist"
-#fi
+if [ -e /dev/sdb ];
+then
+	HDDTEMP2=$(sudo smartctl -d sat -a /dev/sdb | grep Celsius | awk {'print $10'})
+	echo "HDD2: $HDDTEMP2.0"
+else
+	echo "HDD2 does not exist"
+fi
 
 # Get Free Memory and Swap
 FREERAM=$(free --mega | grep Mem | awk {'print($7)'})
@@ -85,7 +85,7 @@ sudo echo $(cat /var/log/telemetry.csv | head -n1) > /var/log/buffer.csv
 sudo echo $(cat /var/log/telemetry.csv | tail -n1) >> /var/log/buffer.csv
 sudo csvjson /var/log/buffer.csv > /var/log/payload.json
 
-curl -v -X POST -d @/var/log/payload.json --url http://sc-draco.flashcoffeetech.com:8080/api/v1/ruXHnIlTv4tTN30jycl1/telemetry --header "Content-Type:application/json"
+curl -v -X POST -d @/var/log/payload.json --url $(cat /home/flash/sc-draco.url) --header "Content-Type:application/json"
 #TODO: Use SSL
 #TODO: Use connection timeout
 #TODO: Handle transport errors and retries
