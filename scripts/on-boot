@@ -1,5 +1,5 @@
 #!/bin/sh
 
-sudo /home/flash/codes/scripts/nfs-restart
 sudo mount -t tmpfs -o rw,size=500M tmpfs /media/flash/ghost
+sleep 30
 sudo /home/flash/codes/scripts/nfs-restart
