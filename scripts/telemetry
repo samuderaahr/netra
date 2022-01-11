@@ -1,7 +1,8 @@
-#!/bin/sh
+#!/bin/bash
 
-# Insert random delay from 1 to 31 seconds
-SECS=$(((RANDOM % 30)+1))
+# Insert random delay from 1 to 46 seconds
+SECS=$((($RANDOM % 45)+1))
+echo "Delay by $SECS"
 sleep $SECS
 
 # Print timestamp
