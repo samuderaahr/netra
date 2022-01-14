@@ -1,0 +1,29 @@
+#!/bin/bash
+
+#Timestamp checks
+INDIR="/media/flash/nfs/datadir0"
+INFILE="$INDIR/$1"
+
+TODAY=$(date "+%Y%m%d")
+LMODTIME=$(date -r $INFILE "+%H%M")
+LMODDATE=$(date -r $INFILE "+%Y%m%d")
+
+# Directory and file naming
+
+OUTDIRROOT="/media/flash/archive"
+DIRNAME=$TODAY
+OUTDIR="$OUTDIRROOT/$DIRNAME"
+# make the dir whatever the status (#TODO)
+mkdir $OUTDIR
+
+OUTFILE="$OUTDIR/$LMODTIME.mp4"
+
+# File Folder naming Debug
+#echo $INDIR
+#echo $INFILE
+#echo $OUTDIR
+#echo $OUTFILE
+
+# TODO: check file sparseness and log if converted file is detected as sparse
+
+ffmpeg -i $INFILE -c:v hevc_nvmpi -b:v 250k -vf scale=w=iw/3:h=ih/3 $OUTFILE
