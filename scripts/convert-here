@@ -1,0 +1,7 @@
+#!/bin/bash
+
+mkdir output
+OUTFILE="$PWD/output/$1"
+ffmpeg -hide_banner -loglevel error -i $1 -c:v hevc_nvmpi -b:v 250k -vf scale=-1:360 $OUTFILE
+
+

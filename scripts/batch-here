@@ -1,0 +1,12 @@
+#!/bin/bash
+
+LIST=$(ls -w 1 | grep mp4)
+mkdir output
+OUTFILE="$PWD/output/$VAL"
+
+for VAL in $LIST; do
+	echo "Converting $VAL to $OUTFILE" >> batch-here.txt
+	ffmpeg -hide_banner -loglevel error -i $VAL -c:v hevc_nvmpi -b:v 250k -vf scale=-1:360 $OUTFILE
+done
+
+
