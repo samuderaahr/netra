@@ -55,7 +55,7 @@ def log_count():
         if vid_finished:
             break
         
-        time.sleep(5)
+        time.sleep(600)
 
 def main():
 
@@ -107,6 +107,13 @@ def main():
         # frame = imutils.resize(frame, width=500)
         rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
+        # if we are supposed to be writing a video to disk, initialize
+        # the writer
+        if args["output"] is not None and writer is None:
+            fourcc = cv2.VideoWriter_fourcc(*'avc1')
+            writer = cv2.VideoWriter(args["output"], fourcc, 30,
+                (W, H), True)
+
 
         # initialize the current status along with our list of bounding
         # box rectangles returned by either (1) our object detector or
@@ -125,7 +132,7 @@ def main():
             
             
             # Run inference.
-            objs = engine.detect_with_image(frame, threshold=0.7, keep_aspect_ratio=args["keep_aspect_ratio"], relative_coord=False, top_k=5)
+            objs = engine.detect_with_image(frame, threshold=0.5, keep_aspect_ratio=args["keep_aspect_ratio"], relative_coord=False, top_k=30)
 
             # loop over the detections
             for obj in objs:
@@ -228,13 +235,31 @@ def main():
                 cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
             cv2.circle(frame, (centroid[0], centroid[1]), 4, (0, 255, 0), -1)
 
+        # construct a tuple of information we will be displaying on the
+        # frame
+        info = [
+            ("left", totalLeft),
+            ("right", totalRight),
+            ("Status", status),
+        ]
+
+        # loop over the info tuples and draw them on our frame
+        for (i, (k, v)) in enumerate(info):
+            text = "{}: {}".format(k, v)
+            cv2.putText(frame, text, (10, H - ((i * 20) + 20)),
+                cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
+
+        # check to see if we should write the frame to disk
+        if writer is not None:
+            writer.write(frame)
+
         # show the output frame
-        cv2.imshow("Frame", frame)
-        key = cv2.waitKey(1) & 0xFF
+        #cv2.imshow("Frame", frame)
+        #key = cv2.waitKey(1) & 0xFF
 
         #if the `q` key was pressed, break from the loop
-        if key == ord("q"):
-            break
+        #if key == ord("q"):
+        #    break
 
         # increment the total number of frames processed thus far and
         # then update the FPS counter
@@ -245,6 +270,10 @@ def main():
     fps.stop()
     print("[INFO] elapsed time: {:.2f}".format(fps.elapsed()))
     print("[INFO] approx. FPS: {:.2f}".format(fps.fps()))
+
+    # check to see if we need to release the video writer pointer
+    if writer is not None:
+        writer.release()
 
     vs.release()
 
@@ -264,3 +293,4 @@ t2.start()
 t1.join()
 # wait until thread 2 is completely executed
 t2.join()
+
