@@ -35,7 +35,7 @@ vid_finished = False
 
 def log_count():
     global totalRight, totalLeft, totalFrames
-    filename = 'log.csv'
+    filename = 'ppl-log.csv'
     header = ['date', 'seek time', 'R', 'L']
     datefmt = '%Y/%m/%d'
 
@@ -54,11 +54,10 @@ def log_count():
         subprocess.run(["/home/flash/codes/people-counting/ppl_telemetry.sh"])
         if vid_finished:
             break
-        
+    
         time.sleep(600)
 
 def main():
-
     # Initialize engine.
     engine = DetectionEngine(args["model"])
     labels = dataset_utils.read_label_file(args["label"]) if args["label"] else None
@@ -80,9 +79,11 @@ def main():
     trackers = []
     trackableObjects = {}
     
-
     global vid_finished, totalRight, totalLeft, totalFrames
     
+
+    upper_left = (370, 0)
+    bottom_right = (600, 250)
 
     # start the frames per second throughput estimator
     fps = FPS().start()
@@ -101,11 +102,16 @@ def main():
             vid_finished = True
             break
 
+        r = cv2.rectangle(frame, upper_left, bottom_right, (100, 50, 200), 5)
+        rect_img = frame[upper_left[1] : bottom_right[1], upper_left[0] : bottom_right[0]]
+        
+        sketcher_rect = rect_img
+
         # resize the frame to have a maximum width of 500 pixels (the
         # less data we have, the faster we can process it), then convert
         # the frame from BGR to RGB for dlib
         # frame = imutils.resize(frame, width=500)
-        rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        rgb = cv2.cvtColor(sketcher_rect, cv2.COLOR_BGR2RGB)
 
         # if we are supposed to be writing a video to disk, initialize
         # the writer
@@ -128,11 +134,11 @@ def main():
             status = "Detecting"
             trackers = []
             # frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            frame = Image.fromarray(frame)
+            sketcher_rect = Image.fromarray(sketcher_rect)
             
             
             # Run inference.
-            objs = engine.detect_with_image(frame, threshold=0.5, keep_aspect_ratio=args["keep_aspect_ratio"], relative_coord=False, top_k=30)
+            objs = engine.detect_with_image(sketcher_rect, threshold=0.7, keep_aspect_ratio=args["keep_aspect_ratio"], relative_coord=False, top_k=30)
 
             # loop over the detections
             for obj in objs:
@@ -177,7 +183,7 @@ def main():
         # draw a horizontal line in the center of the frame -- once an
         # object crosses this line we will determine whether they were
         # moving 'up' or 'down'
-        frame = np.uint8(frame)
+        sketcher_rect = np.uint8(sketcher_rect)
         #cv2.line(frame, (0, H // 2), (W, H // 2), (0, 255, 255), 2)
 
         # use the centroid tracker to associate the (1) old object
@@ -231,9 +237,11 @@ def main():
             # draw both the ID of the object and the centroid of the
             # object on the output frame
             text = "ID {}".format(objectID)
-            cv2.putText(frame, text, (centroid[0] - 10, centroid[1] - 10),
+            cv2.putText(sketcher_rect, text, (centroid[0] - 10, centroid[1] - 10),
                 cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
-            cv2.circle(frame, (centroid[0], centroid[1]), 4, (0, 255, 0), -1)
+            cv2.circle(sketcher_rect, (centroid[0], centroid[1]), 4, (0, 255, 0), -1)
+
+        frame[upper_left[1] : bottom_right[1], upper_left[0] : bottom_right[0]] = sketcher_rect
 
         # construct a tuple of information we will be displaying on the
         # frame
@@ -254,12 +262,12 @@ def main():
             writer.write(frame)
 
         # show the output frame
-        #cv2.imshow("Frame", frame)
-        #key = cv2.waitKey(1) & 0xFF
+        # cv2.imshow("Frame", frame)
+        # key = cv2.waitKey(1) & 0xFF
 
-        #if the `q` key was pressed, break from the loop
-        #if key == ord("q"):
-        #    break
+        # #if the `q` key was pressed, break from the loop
+        # if key == ord("q"):
+        #     break
 
         # increment the total number of frames processed thus far and
         # then update the FPS counter

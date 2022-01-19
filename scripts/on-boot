@@ -1,5 +1,6 @@
 #!/bin/sh
 
-sudo mount -t tmpfs -o rw,size=500M tmpfs /media/flash/ghost
+#TMPFS not used yet, waste of RAM
+#sudo mount -t tmpfs -o rw,size=500M tmpfs /media/flash/ghost
 sleep 30
 sudo /home/flash/codes/scripts/nfs-restart
