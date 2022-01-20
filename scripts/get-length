@@ -1,2 +1,2 @@
 #!/bin/sh
-ffprobe -i $1 -hide_banner -show_format -v error | grep duration
+ffprobe -i $1 -hide_banner -show_format -v error | grep duration | sed 's/.*=//'

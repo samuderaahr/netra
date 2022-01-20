@@ -1,0 +1,19 @@
+#!/bin/bash
+
+LASTMOD=$(echo $1 | sed "s/\..*//")
+OUTDIR="$PWD/output-$LASTMOD"
+mkdir $OUTDIR
+SEEK=0
+
+LENGTH=$(get-length $1)  #vid length in secs
+REPS=$(echo "($LENGTH / 300)" | bc) #integer division w/ 300s
+
+for ((N = 0; N <= $REPS; N++));
+do
+	OUTFILE="$OUTDIR/$N.mp4"
+	echo "Converting $N to $OUTDIR/$OUTFILE" >> batch-here.txt
+	ffmpeg -hide_banner -loglevel warning -n -i $1 -ss $SEEK -t 300 -c copy $OUTFILE
+	SEEK=$((SEEK+300))
+done
+
+
