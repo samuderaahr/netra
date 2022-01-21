@@ -15,16 +15,19 @@ DIRNAME=$LMODDATE
 FNAME=$(echo $1 | sed "s/\..*//")
 OUTDIR="$OUTDIRROOT/$DIRNAME/$FNAME"
 
+mkdir $OUTDIRROOT/$DIRNAME
 mkdir $OUTDIR
 SEEK=0
 
 LENGTH=$(get-length $1)  #vid length in secs
 REPS=$(echo "($LENGTH / 300)" | bc) #integer division w/ 300s
 
-for ((N = 0; N <= $REPS; N++));
+for ((N=0; N<=$REPS; N++))
 do
 	OUTFILE="$OUTDIR/$N.mp4"
-	echo "Converting $N to $OUTDIR/$OUTFILE" >> batch-here.txt
-	ffmpeg -hide_banner -loglevel warning -n -i $1 -ss $SEEK -t 300 -c:v hevc_nvmpi -b:v 250k -vf scale=-1:360 $OUTFILE
-	SEEK=$((SEEK+300))
+	echo "Converting $1 to $OUTFILE at seektime $SEEK"
+	echo "Converting $1 to $OUTFILE at seektime $SEEK" >> $OUTDIR/DEBUG.txt
+	ffmpeg -hide_banner -n -i $1 -ss $SEEK -t 100 -c:v hevc_nvmpi -b:v 250k -vf scale=w=iw/3:h=ih/3 $OUTFILE
+	SEEK=$((SEEK+100))
 done
+

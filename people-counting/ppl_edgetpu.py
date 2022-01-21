@@ -12,7 +12,7 @@ import cv2
 
 # import logging packages
 import time
-from csv_logger import CsvLogger
+import datetime
 from threading import Thread
 import subprocess
 
@@ -34,28 +34,16 @@ totalFrames = 0
 vid_finished = False
 
 def log_count():
-    global totalRight, totalLeft, totalFrames
-    filename = 'ppl-log.csv'
-    header = ['date', 'seek time', 'R', 'L']
-    datefmt = '%Y/%m/%d'
+    global totalRight, totalLeft
+    input = args["input"].split('/')
 
-    # Obtain number of frames and video duration
-    ans = subprocess.check_output(['/home/flash/codes/people-counting/video_param.sh', args["input"]]).decode('ascii').split('\n')
-    print("nb frame is: {}".format(ans[0]))
-    print("vid duration is: {}".format(ans[1]))
+    id_video = input[6].split('.')[0]
+    date_time = input[4] + input[5].split('-')[1]
 
-    # Creat logger with csv rotating handler
-    # configure nb of frames and vid duration accordingly
-    csvlogger = CsvLogger(filename=filename, header=header, datefmt=datefmt)
-    while True:
-        csvlogger.info([totalFrames / int(ans[0]) * float(ans[1]) + time.time(), float(totalLeft), float(totalRight)])
-        totalRight = 0
-        totalLeft = 0
-        subprocess.run(["/home/flash/codes/people-counting/ppl_telemetry.sh"])
-        if vid_finished:
-            break
-    
-        time.sleep(600)
+    date_time = datetime.datetime.strptime(date_time, '%Y%m%d%H%M')
+    seek_time = int(time.mktime(date_time.timetuple())) - ((15 - int(id_video)) * 5 * 60)
+
+    subprocess.Popen(['sudo', '-S', 'bash', '/home/flash/codes/people-counting/logging.sh', str(seek_time), str(totalRight), str(totalLeft)], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate(input=b'lalalala\n')
 
 def main():
     # Initialize engine.
@@ -81,7 +69,6 @@ def main():
     
     global vid_finished, totalRight, totalLeft, totalFrames
     
-
     upper_left = (370, 0)
     bottom_right = (600, 250)
 
@@ -129,7 +116,7 @@ def main():
 
         # check to see if we should run a more computationally expensive
         # object detection method to aid our tracker
-        if totalFrames % 20 == 0:
+        if totalFrames % 5 == 0:
             # set the status and initialize our new set of object trackers
             status = "Detecting"
             trackers = []
@@ -288,17 +275,5 @@ def main():
     # close any open windows
     cv2.destroyAllWindows()
 
-# creating thread
-t1 = Thread(target=main)
-t2 = Thread(target=log_count)
-
-# starting thread 1
-t1.start()
-# starting thread 2
-t2.start()
-
-# wait until thread 1 is completely executed
-t1.join()
-# wait until thread 2 is completely executed
-t2.join()
-
+main()
+log_count()
