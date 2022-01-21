@@ -1,0 +1,22 @@
+#!/bin/bash
+
+# SYNOPSIS:
+# - The script takes no argument and is run from cron job every 4 minutes (TBD)
+# - This script takes the first entry of mark4convert.txt in archive dir which
+#   is the directory of newly split full-res footage:
+#   $ARCHIVE/$DATE/$SOURCEFILE and outputs to $SOURCEFILE/output
+# - The script should check for running ffmpeg and halts when true
+# - Upon successful conversion it deletes source file and mark4convert.txt entry
+
+# ASSUMPTIONS:
+# - File splitting is done *MUCH* faster than conversion (TODO:Test)
+# - File conversion can be deferred to splitting
+
+INFILE=$(cat /media/flash/archive/mark4convert.txt | head -n 1)
+
+OUTFILE="$PWD/output/$VAL"
+
+for VAL in $LIST; do
+	echo "Converting $VAL to $OUTFILE" >> batch-here.txt
+	ffmpeg -hide_banner -loglevel error -i $VAL -c:v hevc_nvmpi -b:v 250k -vf scale=w=iw/3:h=ih/3 $OUTFILE
+done

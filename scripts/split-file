@@ -1,0 +1,46 @@
+#!/bin/bash
+
+# SYNOPSIS:
+# - The script is run manually and takes 1 argument (file name)
+# - This script takes the first entry of mark4convert.txt in archive dir which
+#   is the directory of newly split full-res footage:
+#   $ARCHIVE/$DATE/$SOURCEFILE and outputs to $SOURCEFILE/output
+# - The script should check for running ffmpeg and halts when true
+# - Upon successful conversion it deletes source file and mark4convert.txt entry
+
+# ASSUMPTIONS:
+# - File splitting is done *MUCH* faster than conversion (TODO:Test)
+# - File conversion can be deferred to splitting
+
+INDIR="/media/flash/nfs/datadir0"
+INFILE="$INDIR/$1"
+
+TODAY=$(date "+%Y%m%d")
+LMODTIME=$(date -r $INFILE "+%H%M")
+LMODDATE=$(date -r $INFILE "+%Y%m%d")
+
+# Directory and file naming
+
+OUTDIRROOT="/media/flash/archive"
+DIRNAME=$LMODDATE
+FNAME=$(echo $1 | sed "s/\..*//")
+OUTDIR="$OUTDIRROOT/$DIRNAME/$FNAME"
+
+mkdir $OUTDIRROOT/$DIRNAME
+mkdir $OUTDIR
+mkdir $OUTDIR/FULLRES
+SEEK=0
+
+LENGTH=$(get-length $1)  #vid length in secs
+REPS=$(echo "($LENGTH / 300)" | bc) #integer division w/ 300s
+
+for ((N=0; N<=$REPS; N++))
+do
+	OUTFILE="$OUTDIR/FULLRES/$FNAME_$N.mp4"
+  echo "Converting $1 to $OUTFILE at seektime $SEEK"
+	echo "Converting $1 to $OUTFILE at seektime $SEEK" >> $OUTDIR/DEBUG.txt
+
+	ffmpeg -hide_banner -loglevel warning -n -i $1 -ss $SEEK -t 300 -c copy $OUTFILE
+
+	SEEK=$((SEEK+300))
+done

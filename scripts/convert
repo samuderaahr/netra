@@ -1,6 +1,6 @@
 #!/bin/bash
 
-function conv() 
+function conv()
 {
   ffmpeg -hide_banner -n -i $1 -ss $2 -t 300 -c:v hevc_nvmpi -b:v 250k -vf scale=w=iw/3:h=ih/3 $3
 }
@@ -30,11 +30,10 @@ REPS=$(echo "($LENGTH / 300)" | bc) #integer division w/ 300s
 for ((N=0; N<=$REPS; N++))
 do
 	OUTFILE="$OUTDIR/$N.mp4"
-        echo "Converting $1 to $OUTFILE at seektime $SEEK"
+  echo "Converting $1 to $OUTFILE at seektime $SEEK"
 	echo "Converting $1 to $OUTFILE at seektime $SEEK" >> $OUTDIR/DEBUG.txt
 
 	conv $1 $SEEK $OUTFILE
 
 	SEEK=$((SEEK+300))
 done
-

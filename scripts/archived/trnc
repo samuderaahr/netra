@@ -15,5 +15,3 @@ do
 	ffmpeg -hide_banner -loglevel warning -n -i $1 -ss $SEEK -t 300 -c copy $OUTFILE
 	SEEK=$((SEEK+300))
 done
-
-
