@@ -1,9 +1,8 @@
 #!/bin/bash
 
-function conv
+function conv() 
 {
-  ffmpeg -hide_banner -n -i $1 -ss $SEEK -t 300 -c:v hevc_nvmpi -b:v 250k -vf scale=w=iw/3:h=ih/3 $OUTFILE
-  exit
+  ffmpeg -hide_banner -n -i $1 -ss $2 -t 300 -c:v hevc_nvmpi -b:v 250k -vf scale=w=iw/3:h=ih/3 $3
 }
 
 #Timestamp checks
@@ -34,7 +33,7 @@ do
         echo "Converting $1 to $OUTFILE at seektime $SEEK"
 	echo "Converting $1 to $OUTFILE at seektime $SEEK" >> $OUTDIR/DEBUG.txt
 
-	conv
+	conv $1 $SEEK $OUTFILE
 
 	SEEK=$((SEEK+300))
 done
