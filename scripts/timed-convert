@@ -12,11 +12,22 @@
 # - File splitting is done *MUCH* faster than conversion (TODO:Test)
 # - File conversion can be deferred to splitting
 
-INFILE=$(cat /media/flash/archive/mark4convert.txt | head -n 1)
+TXTPATH="/media/flash/archive/mark4convert.txt"
+LOGPATH="/media/flash/archive/timed-convert.txt"
+INFILE=$(cat $TXTPATH | head -n 1)
 
-OUTFILE="$PWD/output/$VAL"
+# second level parent i.e. ../FULLRES/N.mp4
+PARENT=$(dirname $INFILE)
+PARENT=$(dirname $PARENT)
 
-for VAL in $LIST; do
-	echo "Converting $VAL to $OUTFILE" >> batch-here.txt
-	ffmpeg -hide_banner -loglevel error -i $VAL -c:v hevc_nvmpi -b:v 250k -vf scale=w=iw/3:h=ih/3 $OUTFILE
-done
+OUTFILE="$PARENT/$(basename -s ".mp4" $INFILE).mp4"
+
+echo "Converting $INFILE to $OUTFILE" >> $LOGPATH
+ffmpeg -hide_banner -loglevel error -i $INFILE -c:v hevc_nvmpi -b:v 250k -vf scale=w=iw/3:h=ih/3 $OUTFILE
+
+#TODO: Check validity of the output file by making sure it's > 1M
+
+#TODO: Delete source file after conversion
+
+# Delete mark entry after conversion
+awk 'NR > 1 { print }' < /media/flash/archive/mark4convert.txt

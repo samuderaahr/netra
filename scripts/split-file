@@ -54,6 +54,6 @@ do
 	if [[ $N -eq 84 ]]; #limit segments to 85, equal to 7 hours+
 	then
 		echo "Length bug detected. Exiting" > $OUTDIR/DEBUG.txt
-      		exit
-    	fi
+		exit
+  fi
 done
