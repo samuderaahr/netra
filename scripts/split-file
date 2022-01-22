@@ -51,7 +51,9 @@ do
 	SEEK=$((SEEK+300))
 	sleep 1
 
-	if [[ $j -eq 49 ]]; then
-      		break
+	if [[ $N -eq 84 ]]; #limit segments to 85, equal to 7 hours+
+	then
+		echo "Length bug detected. Exiting" > $OUTDIR/DEBUG.txt
+      		exit
     	fi
 done
