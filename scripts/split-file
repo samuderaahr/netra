@@ -28,7 +28,15 @@ OUTDIR="$OUTDIRROOT/$DIRNAME/$FNAME"
 
 mkdir $OUTDIRROOT/$DIRNAME
 mkdir $OUTDIR
-mkdir $OUTDIR/FULLRES
+
+# Check if dir exist, if true exits (no partial splits)
+if [[ ! -e $OUTDIR/FULLRES ]]; then
+	mkdir $OUTDIR/FULLRES
+else
+	echo "Output dir exists. Exiting"
+	exit
+fi
+
 SEEK=0
 
 LENGTH=$(get-length $1)  #vid length in secs
@@ -37,10 +45,13 @@ REPS=$(echo "($LENGTH / 300)" | bc) #integer division w/ 300s
 for ((N=0; N<=$REPS; N++))
 do
 	OUTFILE="$OUTDIR/FULLRES/$FNAME_$N.mp4"
-  echo "Converting $1 to $OUTFILE at seektime $SEEK"
+	echo "Converting $1 to $OUTFILE at seektime $SEEK"
 	echo "Converting $1 to $OUTFILE at seektime $SEEK" >> $OUTDIR/DEBUG.txt
-
-	ffmpeg -hide_banner -loglevel warning -n -i $1 -ss $SEEK -t 300 -c copy $OUTFILE
-
+	ffmpeg -hide_banner -loglevel error -n -i $1 -ss $SEEK -t 300 -map 0:0 -c copy $OUTFILE
 	SEEK=$((SEEK+300))
+	sleep 1
+
+	if [[ $j -eq 49 ]]; then
+      		break
+    	fi
 done

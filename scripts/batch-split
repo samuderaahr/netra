@@ -1,0 +1,8 @@
+#!/bin/bash
+
+LIST=$(cat /media/flash/nfs/datadir0/list.txt)
+
+for VAL in $LIST; do
+	echo "Splitting $VAL" >> /media/flash/archive/batch.txt
+	split-file $VAL;
+done
