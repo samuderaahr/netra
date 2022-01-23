@@ -26,10 +26,22 @@ PARENT=$(dirname $PARENT)
 CHECK=$(ps aux | grep ffmpeg | grep media)
 
 if [ -z "$CHECK" ]
-the
+then
       OUTFILE="$PARENT/$(basename -s ".mp4" $INFILE).mp4"
       echo "Converting $INFILE to $OUTFILE" >> $LOGPATH
       /usr/local/bin/ffmpeg -hide_banner -i $INFILE -c:v hevc_nvmpi -b:v 250k -vf scale=w=iw/3:h=ih/3 $OUTFILE
+
+      # TODO: Check validity of the output file by making sure it's > 500k
+
+      # Delete source file after conversion
+      echo "Deleted $INFILE"
+       rm $INFILE
+
+      # Delete mark entry after conversion
+      echo "Succesfully converted $INFILE to $OUTFILE" >> $LOGPATH
+
+      cat $TXTPATH > $TXTPATH.old
+      cat $TXTPATH.old | tail -n +2 > $TXTPATH
 else
       echo "Another ffmpeg process detected. Deferring conversion." >> $LOGPATH
       exit
@@ -38,17 +50,7 @@ fi
 
 
 
-# Check validity of the output file by making sure it's > 500k
 
-# Delete source file after conversion
-echo "Deleted $INFILE"
-rm $INFILE
-
-# Delete mark entry after conversion
-echo "Succesfully converted $INFILE to $OUTFILE" >> $LOGPATH
-
-cat $TXTPATH > $TXTPATH.old
-cat $TXTPATH.old | tail -n +2 > $TXTPATH
 
 # this invalidates archive LOL
 ###echo "Succesfully converted $(cat $TXTPATH | head -n 1)" >> $LOGPATH
