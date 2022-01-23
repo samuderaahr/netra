@@ -31,32 +31,31 @@ then
       echo "Converting $INFILE to $OUTFILE" >> $LOGPATH
       /usr/local/bin/ffmpeg -hide_banner -i $INFILE -c:v hevc_nvmpi -b:v 250k -vf scale=w=iw/3:h=ih/3 $OUTFILE
 
-      # TODO: Check validity of the output file by making sure it's > 500k
+      # Check validity of the output file by making sure it's > 500k
+			sync
+      OUTSIZE=$(wc -c skyvision_last_proposal.pdf | awk {'print($1)'})
+      MINSIZE="512000" #500K
 
-      # Delete source file after conversion
-      echo "Deleted $INFILE"
-       rm $INFILE
+      if [ "$OUTSIZE" -lt $MINSIZE ]; then
+         echo "$OUTSIZE might be invalid. Please check." >> $LOGPATH
+         exit
+      else
+        # Delete mark entry after conversion
+        echo "Succesfully converted $INFILE to $OUTFILE" >> $LOGPATH
 
-      # Delete mark entry after conversion
-      echo "Succesfully converted $INFILE to $OUTFILE" >> $LOGPATH
+        cat $TXTPATH > $TXTPATH.old
+        cat $TXTPATH.old | tail -n +2 > $TXTPATH
 
-      cat $TXTPATH > $TXTPATH.old
-      cat $TXTPATH.old | tail -n +2 > $TXTPATH
+        # Delete source file after conversion
+        echo "Deleted $INFILE" >> $LOGPATH
+        rm $INFILE
+      fi
 else
       echo "Another ffmpeg process detected. Deferring conversion." >> $LOGPATH
       exit
 fi
 
 
-
-
-
-
 # this invalidates archive LOL
 ###echo "Succesfully converted $(cat $TXTPATH | head -n 1)" >> $LOGPATH
 ###awk 'NR > 1 { print }' < /media/flash/archive/mark4convert.txt
-
-
-
-
-
