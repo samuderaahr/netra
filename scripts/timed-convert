@@ -23,10 +23,20 @@ INFILE=$(cat $TXTPATH | head -n 1)
 PARENT=$(dirname $INFILE)
 PARENT=$(dirname $PARENT)
 
-OUTFILE="$PARENT/$(basename -s ".mp4" $INFILE).mp4"
+CHECK=$(ps aux | grep ffmpeg | grep media)
 
-echo "Converting $INFILE to $OUTFILE" >> $LOGPATH
-ffmpeg -hide_banner -i $INFILE -c:v hevc_nvmpi -b:v 250k -vf scale=w=iw/3:h=ih/3 $OUTFILE
+if [ -z "$CHECK" ]
+the
+      OUTFILE="$PARENT/$(basename -s ".mp4" $INFILE).mp4"
+      echo "Converting $INFILE to $OUTFILE" >> $LOGPATH
+      /usr/local/bin/ffmpeg -hide_banner -i $INFILE -c:v hevc_nvmpi -b:v 250k -vf scale=w=iw/3:h=ih/3 $OUTFILE
+else
+      echo "Another ffmpeg process detected. Deferring conversion." >> $LOGPATH
+      exit
+fi
+
+
+
 
 # Check validity of the output file by making sure it's > 500k
 
