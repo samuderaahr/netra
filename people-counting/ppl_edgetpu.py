@@ -23,6 +23,7 @@ parser.add_argument('--label', help='Labels file path.')
 parser.add_argument('--input', type=str, help="path to optional input video file")
 parser.add_argument('--output', help='Output image path.')
 parser.add_argument('--keep_aspect_ratio', action='store_true', help=('keep the image aspect ratio'))
+parser.add_argument('--n_files', type=int, help='num of files in folder')
 args = vars(parser.parse_args())
 
 # initialize the total number of frames processed thus far, along
@@ -41,9 +42,9 @@ def log_count():
     date_time = input[4] + input[5].split('-')[1]
 
     date_time = datetime.datetime.strptime(date_time, '%Y%m%d%H%M')
-    seek_time = int(time.mktime(date_time.timetuple())) - ((15 - int(id_video)) * 5 * 60)
+    seek_time = int(time.mktime(date_time.timetuple())) - ((int(args["n_files"]) - int(id_video)) * 5 * 60)
 
-    subprocess.Popen(['sudo', '-S', 'bash', '/home/flash/codes/people-counting/logging.sh', str(seek_time), str(totalRight), str(totalLeft)], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate(input=b'lalalala\n')
+    subprocess.Popen(['sudo', '-S', 'bash', '/home/flash/codes/people-counting/logging.sh', str(seek_time * 1000), str(totalRight), str(totalLeft)], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate(input=b'lalalala\n')
 
 def main():
     # Initialize engine.

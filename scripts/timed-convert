@@ -27,13 +27,20 @@ CHECK=$(ps aux | grep ffmpeg | grep media)
 
 if [ -z "$CHECK" ]
 then
+      # Check if file exists, if not exit
       OUTFILE="$PARENT/$(basename -s ".mp4" $INFILE).mp4"
-      echo "Converting $INFILE to $OUTFILE" >> $LOGPATH
-      /usr/local/bin/ffmpeg -hide_banner -i $INFILE -c:v hevc_nvmpi -b:v 250k -vf scale=w=iw/3:h=ih/3 $OUTFILE
+
+      if [ -f "$INFILE" ]; then
+        echo "Converting $INFILE to $OUTFILE" >> $LOGPATH
+        /usr/local/bin/ffmpeg -hide_banner -i $INFILE -c:v hevc_nvmpi -b:v 250k -vf scale=w=iw/3:h=ih/3 $OUTFILE
+      else
+        echo "I think the list runs out!" >> $LOGPATH
+        exit
+      fi
 
       # Check validity of the output file by making sure it's > 500k
-			sync
-      OUTSIZE=$(wc -c skyvision_last_proposal.pdf | awk {'print($1)'})
+      sync
+      OUTSIZE=$(wc -c $OUTFILE | awk {'print($1)'})
       MINSIZE="512000" #500K
 
       if [ "$OUTSIZE" -lt $MINSIZE ]; then
