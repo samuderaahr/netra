@@ -42,7 +42,7 @@ then
            echo "$OUTSIZE might be invalid. Please check." >> $LOGPATH
            echo "NOT deleting $INFILE but deleting the mark" >> $LOGPATH
    	   cat $TXTPATH > $TXTPATH.old
-           sleep 1
+           sync
            cat $TXTPATH.old | tail -n +2 > $TXTPATH
 
            exit
@@ -51,7 +51,7 @@ then
           echo "Succesfully converted $INFILE to $OUTFILE" >> $LOGPATH
 
           cat $TXTPATH > $TXTPATH.old
-          sleep 1
+          sync
           cat $TXTPATH.old | tail -n +2 > $TXTPATH
 
           # Delete source file after conversion
