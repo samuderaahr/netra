@@ -2,7 +2,10 @@
 
 echo "Reboot script called on $(date)" >> /var/log/auto-reboot.log
 
-#making sure every NFS operation has REALLY stopped0
+# Flush disk writes
+sync
+
+# Making sure every NFS operation has REALLY stopped0
 sleep 30
 /sbin/service nfs stop
 
