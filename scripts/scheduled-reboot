@@ -1,0 +1,12 @@
+#!/bin/bash
+
+echo "Reboot script called on $(date)" >> /var/log/auto-reboot.log
+
+#making sure every NFS operation has REALLY stopped0
+sleep 30
+/sbin/service nfs stop
+
+/sbin/shutdown -r now
+
+sleep 1
+echo "This should never ever happen. Reboot failed!?" >> /var/log/auto-reboot.log
