@@ -13,7 +13,6 @@ import cv2
 # import logging packages
 import time
 import datetime
-from threading import Thread
 import subprocess
 
 # construct the argument parse and parse the arguments
