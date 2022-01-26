@@ -27,44 +27,43 @@ CHECK=$(ps aux | grep ffmpeg | grep media)
 
 if [ -z "$CHECK" ]
 then
-      # Check if file exists, if not exit
-      OUTFILE="$PARENT/$(basename -s ".mp4" $INFILE).mp4"
+  # Check if file exists, if not exit
+  OUTFILE="$PARENT/$(basename -s ".mp4" $INFILE).mp4"
 
-      if [ -f "$INFILE" ]; then
-        echo "Converting $INFILE to $OUTFILE" >> $LOGPATH
-        /usr/local/bin/ffmpeg -hide_banner -i $INFILE -c:v hevc_nvmpi -b:v 250k -vf scale=w=iw/3:h=ih/3 $OUTFILE
-        # Check validity of the output file by making sure it's > 500k
-        sync
-        OUTSIZE=$(wc -c $OUTFILE | awk {'print($1)'})
-        MINSIZE="512000" #500K
+  if [ -f "$INFILE" ]; then
+    echo "Converting $INFILE to $OUTFILE" >> $LOGPATH
+    /usr/local/bin/ffmpeg -hide_banner -i $INFILE -c:v hevc_nvmpi -b:v 250k -vf scale=w=iw/3:h=ih/3 $OUTFILE
+    # Check validity of the output file by making sure it's > 500k
+    sync
+    OUTSIZE=$(wc -c $OUTFILE | awk {'print($1)'})
+    MINSIZE="512000" #500K
 
-        if [ "$OUTSIZE" -lt $MINSIZE ]; then
-           echo "$OUTSIZE might be invalid. Please check." >> $LOGPATH
-           echo "NOT deleting $INFILE but deleting the mark" >> $LOGPATH
-   	   cat $TXTPATH > $TXTPATH.old
-           sync
-           cat $TXTPATH.old | tail -n +2 > $TXTPATH
-
-           exit
-        else
-          # Delete mark entry after conversion
-          echo "Succesfully converted $INFILE to $OUTFILE" >> $LOGPATH
-
-          cat $TXTPATH > $TXTPATH.old
-          sync
-          cat $TXTPATH.old | tail -n +2 > $TXTPATH
-
-          # Delete source file after conversion
-          echo "Deleted $INFILE" >> $LOGPATH
-          rm $INFILE
-        fi
-      else
-        echo "I think the list runs out!" >> $LOGPATH
-        exit
-      fi
-else
-      echo "Another ffmpeg process detected. Deferring conversion." >> $LOGPATH
+    if [ "$OUTSIZE" -lt $MINSIZE ]; then
+      echo "$OUTSIZE might be invalid. Please check." >> $LOGPATH
+      echo "NOT deleting $INFILE but deleting the mark" >> $LOGPATH
+      cat $TXTPATH > $TXTPATH.old
+      sync
+      timeout 5 bash -c "cat $TXTPATH.old | tail -n +2 > $TXTPATH"
       exit
+    else
+      # Delete mark entry after conversion
+      echo "Succesfully converted $INFILE to $OUTFILE" >> $LOGPATH
+
+      cat $TXTPATH > $TXTPATH.old
+      sync
+      timeout 5 bash -c "cat $TXTPATH.old | tail -n +2 > $TXTPATH"
+
+      # Delete source file after conversion
+      echo "Deleted $INFILE" >> $LOGPATH
+      rm $INFILE
+    fi
+  else
+    echo "I think the list runs out!" >> $LOGPATH
+    exit
+  fi
+else
+  echo "Another ffmpeg process detected. Deferring conversion." >> $LOGPATH
+  exit
 fi
 
 

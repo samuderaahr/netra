@@ -7,9 +7,9 @@ sync
 
 # Making sure every NFS operation has REALLY stopped0
 sleep 30
-/sbin/service nfs stop
+sudo service nfs stop
 
-/sbin/reboot now
+sudo reboot now
 
 sleep 1
 echo "This should never ever happen. Reboot failed!?" >> /var/log/auto-reboot.log
