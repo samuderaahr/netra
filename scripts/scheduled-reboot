@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "Reboot script called on $(date)" >> /var/log/auto-reboot.log
+echo "Reboot script called on $(date)" >> /media/flash/archive/auto-reboot.txt
 
 # Flush disk writes
 sync
@@ -9,7 +9,7 @@ sync
 sleep 30
 /sbin/service nfs stop
 
-/sbin/shutdown -r now
+/sbin/reboot now
 
 sleep 1
 echo "This should never ever happen. Reboot failed!?" >> /var/log/auto-reboot.log
