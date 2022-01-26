@@ -15,8 +15,8 @@
 #Set Path for ffmpeg Libraries -- cron compat
 export LD_LIBRARY_PATH=/usr/lib/
 
-TXTPATH="/media/flash/archive/mark4convert.txt"
-LOGPATH="/media/flash/archive/timed-convert.txt"
+TXTPATH="/home/flash/logs/mark4convert.txt"
+LOGPATH="/home/flash/logs/timed-convert.log"
 INFILE=$(cat $TXTPATH | head -n 1)
 
 # second level parent i.e. ../FULLRES/N.mp4
@@ -59,6 +59,10 @@ then
     fi
   else
     echo "I think the list runs out!" >> $LOGPATH
+    # fix for list running out from caching issue
+    if [ -s $TXTPATH.old ]; then #if the old isn't empty, use that one
+      timeout 5 bash -c "cat $TXTPATH.old | tail -n +2 > $TXTPATH"
+    fi
     exit
   fi
 else
